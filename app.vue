@@ -367,6 +367,10 @@
         intensity *= 0.5;
       }
       rr.reverse();
+      const f = rr[0]
+      while (f === rr[0]) {
+        rr.shift();
+      }
     }
     return ret;
   });
