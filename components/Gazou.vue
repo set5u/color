@@ -61,8 +61,20 @@
     </div>
     <span>無色: {{ indegrants[-1] }}</span>
   </div>
+  <div v-if="results.length">
+    <select v-model="section">
+      <option v-for="(c, i) of command" :value="i">分割{{ i }}</option>
+      <option :value="command.length" disabled>最後までコピーされました</option>
+    </select>
+    <button @click="copyCommand">設置コマンドをコピー</button>
+  </div>
 </template>
 <script setup lang="ts">
+  const section = ref(0);
+  const copyCommand = () => {
+    window.navigator.clipboard.writeText(command.value[section.value]);
+    section.value++;
+  };
   const canvasRef = ref<HTMLCanvasElement>();
   const resultRef = ref<HTMLCanvasElement>();
   const width = ref(16);
@@ -267,21 +279,58 @@
       }
       for (let j = 0; j < height.value; j++) {
         const color = imageColors.value[i][j];
-        let abs = Math.sqrt(
-          (color[0] - currentColor2[0]) ** 2 +
-            (color[1] - currentColor2[1]) ** 2 +
-            (color[2] - currentColor2[2]) ** 2
-        );
+        const color0 = imageColors.value[i][j + 1] || [0, 0, 0];
+        const color1 = imageColors.value[i][j + 2] || [0, 0, 0];
+        let abs = Infinity;
         let minIndex = -1;
-        for (let k = 0; k < colorNums.length; k++) {
-          const distance = Math.sqrt(
-            (color[0] - (currentColor2[0] + colorNums[k][0]) / 2) ** 2 +
-              (color[1] - (currentColor2[1] + colorNums[k][1]) / 2) ** 2 +
-              (color[2] - (currentColor2[2] + colorNums[k][2]) / 2) ** 2
-          );
-          if (distance < abs) {
-            abs = distance;
-            minIndex = k;
+        for (let k = 0; k < colorNums.length + 1; k++) {
+          const next =
+            k === colorNums.length
+              ? currentColor2
+              : [
+                  (currentColor2[0] + colorNums[k][0]) / 2,
+                  (currentColor2[1] + colorNums[k][1]) / 2,
+                  (currentColor2[2] + colorNums[k][2]) / 2,
+                ];
+          for (let k0 = 0; k0 < colorNums.length + 1; k0++) {
+            const next0 =
+              k0 === colorNums.length
+                ? next
+                : [
+                    (next[0] + colorNums[k0][0]) / 2,
+                    (next[1] + colorNums[k0][1]) / 2,
+                    (next[2] + colorNums[k0][2]) / 2,
+                  ];
+            for (let k1 = 0; k1 < colorNums.length + 1; k1++) {
+              const next1 =
+                k1 === colorNums.length
+                  ? next0
+                  : [
+                      (next0[0] + colorNums[k1][0]) / 2,
+                      (next0[1] + colorNums[k1][1]) / 2,
+                      (next0[2] + colorNums[k1][2]) / 2,
+                    ];
+              const distance =
+                Math.sqrt(
+                  (color[0] - next[0]) ** 2 +
+                    (color[1] - next[1]) ** 2 +
+                    (color[2] - next[2]) ** 2
+                ) +
+                Math.sqrt(
+                  (color0[0] - next0[0]) ** 2 +
+                    (color0[1] - next0[1]) ** 2 +
+                    (color0[2] - next0[2]) ** 2
+                ) +
+                Math.sqrt(
+                  (color1[0] - next1[0]) ** 2 +
+                    (color1[1] - next1[1]) ** 2 +
+                    (color1[2] - next1[2]) ** 2
+                );
+              if (distance < abs) {
+                abs = distance;
+                minIndex = k === colorNums.length ? -1 : k;
+              }
+            }
           }
         }
         rr.push(minIndex);
@@ -317,7 +366,50 @@
         rr.push(currentColor.slice());
       }
     }
-    console.log(ret);
     return ret;
+  });
+  const blockIds = [
+    "white_stained_glass_pane",
+    "light_gray_stained_glass_pane",
+    "gray_stained_glass_pane",
+    "black_stained_glass_pane",
+    "brown_stained_glass_pane",
+    "red_stained_glass_pane",
+    "orange_stained_glass_pane",
+    "yellow_stained_glass_pane",
+    "lime_stained_glass_pane",
+    "green_stained_glass_pane",
+    "cyan_stained_glass_pane",
+    "light_blue_stained_glass_pane",
+    "blue_stained_glass_pane",
+    "purple_stained_glass_pane",
+    "magenta_stained_glass_pane",
+    "pink_stained_glass_pane",
+  ];
+  blockIds[-1] = "glass_pane";
+  const command = computed(() => {
+    const rets = [];
+    for (let i = 0; i < width.value; i++) {
+      let ret = `summon falling_block ~ ~1 ~ {BlockState:{Name:"minecraft:command_block"},TileEntityData:{auto:1b,Command:"`;
+      for (let j = 0; j < height.value + numGlasses.value + 1; j++) {
+        const color = results.value[i][j];
+        ret += `setblock ~1 ~ ~ `;
+        ret += blockIds[color];
+        ret += `"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:lava"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:command_block"},TileEntityData:{auto:1b,Command:"`;
+      }
+      ret += `fill ~ ~ ~ ~ ~-${height.value + numGlasses.value + 2} ~ air`;
+      ret += `"}}`;
+      ret += `]}]}`.repeat(height.value + numGlasses.value + 1);
+      rets.push(ret);
+    }
+    let ret = `summon falling_block ~ ~1 ~ {BlockState:{Name:"minecraft:command_block"},TileEntityData:{auto:1b,Command:"`;
+    ret += `fill ~ ~-1 ~ ~2 ~-1 ~${width.value + 1} iron_block`;
+    ret += `"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:lava"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:command_block"},TileEntityData:{auto:1b,Command:"`;
+    ret += `fill ~1 ~-1 ~1 ~1 ~-1 ~${width.value} beacon`;
+    ret += `"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:lava"},Passengers:[{id:"minecraft:falling_block",BlockState:{Name:"minecraft:command_block"},TileEntityData:{auto:1b,Command:"`;
+    ret += `fill ~ ~ ~ ~ ~-2 ~ air`;
+    ret += `"}}`;
+    ret += `]}]}`.repeat(2);
+    return [ret, ...rets];
   });
 </script>
