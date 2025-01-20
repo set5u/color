@@ -371,6 +371,7 @@
       while (f === rr[0]) {
         rr.shift();
       }
+      rr.unshift(f)
     }
     return ret;
   });
