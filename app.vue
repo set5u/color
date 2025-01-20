@@ -1,4 +1,5 @@
 <template>
+  <Title>Image2Beacon</Title>
   <template v-if="gazou"> <Gazou></Gazou> </template>
   <template v-else>
     <div style="margin: 2em">
