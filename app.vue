@@ -1,178 +1,184 @@
 <template>
-  <div style="margin: 2em">
-    <div style="font-size: 2em">色計算機</div>
-    <div
-      v-for="c of colorsRGB"
-      :style="{
-        width: `${100 / colorsRGB.length}%`,
-        display: 'inline-block',
-        backgroundColor: `rgb(${c[0]}, ${c[1]}, ${c[2]})`,
-        height: '1em',
-      }"
-    ></div>
-    <div>モード</div>
-    <select v-model="type">
-      <option value="hsl">HSL</option>
-      <option value="hsv">HSV</option>
-      <option value="rgb">RGB</option></select
-    ><select v-if="type !== 'rgb'" v-model="near">
-      <option :value="true">時計回り</option>
-      <option :value="false">反時計回り</option>
-    </select>
-    <div>開始色</div>
-    <template v-if="type === 'rgb'">
+  <template v-if="gazou"> <Gazou></Gazou> </template>
+  <template v-else>
+    <div style="margin: 2em">
+      <div style="font-size: 2em">色計算機</div>
       <div>
+        <button @click="gazou = true">画像</button>
+      </div>
+      <div
+        v-for="c of colorsRGB"
+        :style="{
+          width: `${100 / colorsRGB.length}%`,
+          display: 'inline-block',
+          backgroundColor: `rgb(${c[0]}, ${c[1]}, ${c[2]})`,
+          height: '1em',
+        }"
+      ></div>
+      <div>モード</div>
+      <select v-model="type">
+        <option value="hsl">HSL</option>
+        <option value="hsv">HSV</option>
+        <option value="rgb">RGB</option></select
+      ><select v-if="type !== 'rgb'" v-model="near">
+        <option :value="true">時計回り</option>
+        <option :value="false">反時計回り</option>
+      </select>
+      <div>開始色</div>
+      <template v-if="type === 'rgb'">
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="start[0]"
+          />
+        </div>
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="start[1]"
+          />
+        </div>
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="start[2]"
+          /></div
+      ></template>
+      <template v-else>
         <input
           type="range"
           min="0"
-          max="255"
+          max="360"
           step="1"
           v-model.number="start[0]"
+          style="display: block"
         />
-      </div>
-      <div>
         <input
           type="range"
           min="0"
-          max="255"
+          max="100"
           step="1"
           v-model.number="start[1]"
+          style="display: block"
         />
-      </div>
-      <div>
         <input
           type="range"
           min="0"
-          max="255"
+          max="100"
           step="1"
           v-model.number="start[2]"
-        /></div
-    ></template>
-    <template v-else>
-      <input
-        type="range"
-        min="0"
-        max="360"
-        step="1"
-        v-model.number="start[0]"
-        style="display: block"
-      />
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        v-model.number="start[1]"
-        style="display: block"
-      />
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        v-model.number="start[2]"
-        style="display: block"
-      />
-    </template>
-    <div>終了色</div>
-    <template v-if="type === 'rgb'">
-      <div>
+          style="display: block"
+        />
+      </template>
+      <div>終了色</div>
+      <template v-if="type === 'rgb'">
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="end[0]"
+          />
+        </div>
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="end[1]"
+          />
+        </div>
+        <div>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            step="1"
+            v-model.number="end[2]"
+          /></div
+      ></template>
+      <template v-else>
         <input
           type="range"
           min="0"
-          max="255"
+          max="360"
           step="1"
           v-model.number="end[0]"
+          style="display: block"
         />
-      </div>
-      <div>
         <input
           type="range"
           min="0"
-          max="255"
+          max="100"
           step="1"
           v-model.number="end[1]"
+          style="display: block"
         />
-      </div>
-      <div>
         <input
           type="range"
           min="0"
-          max="255"
+          max="100"
           step="1"
           v-model.number="end[2]"
-        /></div
-    ></template>
-    <template v-else>
-      <input
-        type="range"
-        min="0"
-        max="360"
-        step="1"
-        v-model.number="end[0]"
-        style="display: block"
-      />
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        v-model.number="end[1]"
-        style="display: block"
-      />
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        v-model.number="end[2]"
-        style="display: block"
-      />
-    </template>
-    <div>
-      <div>横幅</div>
-      <input type="number" v-model.number="steps" />
-    </div>
-    <div>
-      <div>縦幅</div>
-      <input type="number" v-model.number="numGlasses" />
-    </div>
-    <div>
-      <div>計算結果(横向き)</div>
-      <div>下ー＞上</div>
-      <div
-        v-for="result of results"
-        style="
-          text-align: center;
-          overflow-x: auto;
-          height: 2em;
-          width: max-content;
-        "
-      >
+          style="display: block"
+        />
+      </template>
+      <div>
+        <div>横幅</div>
+        <input type="number" v-model.number="steps" />
+      </div>
+      <div>
+        <div>縦幅</div>
+        <input type="number" v-model.number="numGlasses" />
+      </div>
+      <div>
+        <div>計算結果(横向き)</div>
+        <div>下ー＞上</div>
         <div
-          v-for="r of result"
-          style="display: inline-block; width: 2em; height: 2em"
-          :style="{
-            backgroundColor: `rgb(${colorNums[r][0]}, ${colorNums[r][1]}, ${colorNums[r][2]})`,
-          }"
+          v-for="result of results"
+          style="
+            text-align: center;
+            overflow-x: auto;
+            height: 2em;
+            width: max-content;
+          "
         >
-          {{ colorNames[r] }}
+          <div
+            v-for="r of result"
+            style="display: inline-block; width: 2em; height: 2em"
+            :style="{
+              backgroundColor: `rgb(${colorNums[r][0]}, ${colorNums[r][1]}, ${colorNums[r][2]})`,
+            }"
+          >
+            {{ colorNames[r] }}
+          </div>
         </div>
       </div>
-    </div>
-    <div>
-      <div>必要数</div>
-      <div v-for="(_, i) of indegrants">
-        <div
-          :style="{
-            backgroundColor: `rgb(${colorNums[i][0]}, ${colorNums[i][1]}, ${colorNums[i][2]})`,
-          }"
-          style="height: 1em; width: 1em; display: inline-block"
-        ></div>
-        <span>{{ colorNames[i] }}: {{ indegrants[i] }}</span>
+      <div>
+        <div>必要数</div>
+        <div v-for="(_, i) of indegrants">
+          <div
+            :style="{
+              backgroundColor: `rgb(${colorNums[i][0]}, ${colorNums[i][1]}, ${colorNums[i][2]})`,
+            }"
+            style="height: 1em; width: 1em; display: inline-block"
+          ></div>
+          <span>{{ colorNames[i] }}: {{ indegrants[i] }}</span>
+        </div>
       </div>
-    </div>
-  </div>
+    </div></template
+  >
 </template>
 <script setup lang="ts">
   const steps = ref(10);
@@ -315,12 +321,12 @@
     "黄",
     "黄緑",
     "緑",
+    "青緑",
     "空",
-    "水",
     "青",
     "紫",
     "赤紫",
-    "ピン",
+    "桃",
   ];
   const colorNums: number[][] = [];
   for (const h of colorHexes) {
@@ -367,11 +373,11 @@
         intensity *= 0.5;
       }
       rr.reverse();
-      const f = rr[0]
+      const f = rr[0];
       while (f === rr[0]) {
         rr.shift();
       }
-      rr.unshift(f)
+      rr.unshift(f);
     }
     return ret;
   });
@@ -382,4 +388,5 @@
     }
     return ret;
   });
+  const gazou = ref(false);
 </script>
